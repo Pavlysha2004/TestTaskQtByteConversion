@@ -17,6 +17,14 @@ AppSettings::AppSettings()
 
 }
 
+AppSettings &AppSettings::operator=(const AppSettings &other)
+{
+    if (this != &other) {
+        settings = other.settings;
+    }
+    return *this;
+}
+
 QVariant AppSettings::GetSettingsByName(QString name)
 {
     return this->settings[name];
@@ -27,15 +35,16 @@ QMap<QString, QVariant> AppSettings::GetSettings()
     return settings;
 }
 
-void AppSettings::DebugAllSettingsWrite()
-{
 #ifdef DEBUGAPPSETTINGS
-    qDebug() << "\n Settings prog:";
-    for (auto it = settings.begin(); it != settings.end(); ++it) {
-        qDebug() << it.key() << ":" << it.value().toString();
+QDebug operator<<(QDebug debug, const AppSettings& appset)
+{
+    debug << "\n Settings prog: \n";
+    for (auto it = appset.settings.begin(); it != appset.settings.end(); ++it) {
+        debug << it.key() << ":" << it.value().toString() << "\n";
     }
-#endif
+    return debug;
 }
+#endif
 
 bool AppSettings::validateSettings() {
     for (auto it = this->settings.begin(); it != this->settings.end(); ++it) {
@@ -44,4 +53,9 @@ bool AppSettings::validateSettings() {
         }
     }
     return true;
+}
+
+bool AppSettings::isEmpty()
+{
+    return settings.isEmpty();
 }

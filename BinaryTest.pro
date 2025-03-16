@@ -10,13 +10,17 @@ CONFIG += c++17
 
 SOURCES += \
     appsettings.cpp \
+    filehandler.cpp \
     main.cpp \
     mainwindow.cpp \
+    threadworker.cpp \
     workwithfile.cpp
 
 HEADERS += \
     appsettings.h \
+    filehandler.h \
     mainwindow.h \
+    threadworker.h \
     workwithfile.h
 
 FORMS += \

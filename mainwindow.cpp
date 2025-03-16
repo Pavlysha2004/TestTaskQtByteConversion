@@ -30,10 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Подключение сигналов и слотов//
     QObject::connect(WorksFile, &WorkWithFile::Signal_Set_L_MassegeLable, this, &MainWindow::Set_L_MassegeLable);
+    QObject::connect(WorksFile, &WorkWithFile::Signal_WorkFiles_Stop, this, &MainWindow::Slots_WorkFiles_Stop);
     QObject::connect(this, &MainWindow::StartWorkFileProc, WorksFile, &WorkWithFile::StartWorkFile);
     QObject::connect(this, &MainWindow::StopTimerWork, WorksFile, &WorkWithFile::StopTimerSlot);
     QObject::connect(this, &MainWindow::Signal_Set_L_MassegeLable, this, &MainWindow::Set_L_MassegeLable);
-
 }
 
 MainWindow::~MainWindow()
@@ -69,16 +69,17 @@ void MainWindow::on_StartProgram_clicked()
 {
    try
    {
-        if (ChekingFields())
+        if (ChekingFields() && !WorkFilesStart)
         {
             SetSettings();
 #ifdef DEBUGAPPSETTINGS
-            WorksFile->ProgramSettings->DebugAllSettingsWrite();
+            qDebug() << *WorksFile->ProgramSettings;
 #endif
             if (WorksFile->ProgramSettings->GetSettingsByName("TimeInput").toInt() > 0)
                 ui->StopProgram->show();
 
             emit StartWorkFileProc();
+            WorkFilesStart = true;
 
         }
    }
@@ -121,7 +122,11 @@ void MainWindow::Set_L_MassegeLable(QString text, QString setStyleSheet)
     ui->L_MassegeLable->setText(text);
     ui->L_MassegeLable->setStyleSheet(setStyleSheet);
     ui->L_MassegeLable->show();
-    QCoreApplication::processEvents();
+}
+
+void MainWindow::Slots_WorkFiles_Stop()
+{
+    WorkFilesStart = false;
 }
 
 void MainWindow::on_CB_operatingMode_currentTextChanged(const QString &arg1)

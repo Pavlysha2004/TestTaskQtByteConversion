@@ -4,6 +4,7 @@
 #include <QString>
 #include <QMap>
 #include <QVariant>
+#include <QDebug>
 
 #define DEBUGAPPSETTINGS
 
@@ -15,7 +16,7 @@ private:
         {"DeleteInputFile", QVariant(false)},
         {"PatchSaveFile", QVariant("")},
         {"PatchTakingFile", QVariant("")},
-        {"NameConflict", QVariant("")}, // можно подумать на реализацией enum для данной настройки
+        {"NameConflict", QVariant("")},
         {"OperationMode", QVariant("")},
         {"TimeInput", QVariant(0)},
         {"_8ByteValue", QVariant(0)}
@@ -24,6 +25,8 @@ private:
 public:
     AppSettings(const AppSettings &arg);
     AppSettings();
+
+    AppSettings& operator=(const AppSettings &other);
 
     template<class T>
     void SetSettings(QString name, T arg)
@@ -36,9 +39,13 @@ public:
 
     bool validateSettings();
 
+    bool isEmpty();
+
 #ifdef DEBUGAPPSETTINGS
-    void DebugAllSettingsWrite();
+    friend QDebug operator<<(QDebug debug, const AppSettings& appset);
 #endif
 };
+
+
 
 #endif // APPSETTINGS_H

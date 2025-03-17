@@ -9,14 +9,11 @@ void ThreadWorker::setParameters(const AppSettings &settings,
                                  const QDir &dest,
                                  const QStringList &files)
 {
-    if (!parametersSet) {
-        programSettings = settings;
-        key = keyData;
-        sourceDir = source;
-        destDir = dest;
-        allFiles = files;
-        parametersSet = true;
-    }
+    programSettings = settings;
+    key = keyData;
+    sourceDir = source;
+    destDir = dest;
+    allFiles = files;
 }
 
 void ThreadWorker::processFileHand()
@@ -40,4 +37,9 @@ void ThreadWorker::processFileHand()
                               allFiles);
     emit finishedFileHand(true);
     delete FileHand;
+}
+
+void ThreadWorker::StopClicked()
+{
+    FileHandler::SetClickedStop(true);
 }

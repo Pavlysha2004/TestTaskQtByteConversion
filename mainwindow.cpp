@@ -75,8 +75,8 @@ void MainWindow::on_StartProgram_clicked()
 #ifdef DEBUGAPPSETTINGS
             qDebug() << *WorksFile->ProgramSettings;
 #endif
-            if (WorksFile->ProgramSettings->GetSettingsByName("TimeInput").toInt() > 0)
-                ui->StopProgram->show();
+
+            ui->StopProgram->show();
 
             emit StartWorkFileProc();
             WorkFilesStart = true;

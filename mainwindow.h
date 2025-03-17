@@ -3,7 +3,6 @@
 
 #include "ui_mainwindow.h"
 #include "workwithfile.h"
-#include "filehandler.h"
 #include <QTimer>
 #include <QDebug>
 

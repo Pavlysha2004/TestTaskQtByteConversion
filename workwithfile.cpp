@@ -8,8 +8,8 @@ WorkWithFile::WorkWithFile(QObject* parent) : QObject(parent)
     key = new QByteArray(8, 0);
     timerFileProcessing.setSingleShot(true);
     //Подключаем сигналы и слоты//
-    QObject::connect(&timerFileProcessing, &QTimer::timeout, this, &WorkWithFile::StartingFileProcessing);
-    QObject::connect(this, &WorkWithFile::one_timeLaunch, this, &WorkWithFile::StartingFileProcessing);
+    connect(&timerFileProcessing, &QTimer::timeout, this, &WorkWithFile::StartingFileProcessing);
+    connect(this, &WorkWithFile::one_timeLaunch, this, &WorkWithFile::StartingFileProcessing);
 }
 
 WorkWithFile::~WorkWithFile()
@@ -64,18 +64,11 @@ void WorkWithFile::stopTimer()
 {
     if (timerFileProcessing.isActive()) {
         timerFileProcessing.stop();
-        emit this->Signal_Set_L_MassegeLable("Таймер остановлен.", "color: green; font-weight: bold;");
-        #ifdef DEBUGWORKFILE
-        qDebug() << "Таймер остановлен.";
-        #endif
     }
-    else
-    {
-        emit this->Signal_Set_L_MassegeLable("Ошибка остановки таймера.", "color: red; font-weight: bold;");
-            #ifdef DEBUGWORKFILE
-            qDebug() << "Ошибка остановки таймера.";
-            #endif
-    }
+    OnTimer = false;
+#ifdef DEBUGWORKFILE
+    qDebug() << "Таймер остановлен.";
+#endif
 }
 
 void WorkWithFile::FillQByteArray_key()
@@ -148,10 +141,10 @@ void WorkWithFile::ReadingInformationAboutFiles()
 }
 
 void WorkWithFile::makeThread(int numThreads)
-{
+{    
     for (int i = 0; i < numThreads; ++i) {
-        ThreadWorker* worker = new ThreadWorker();
         QThread* thread = new QThread();
+        ThreadWorker* worker = new ThreadWorker();
 
         worker->moveToThread(thread);
 
@@ -204,6 +197,9 @@ void WorkWithFile::StartingFileProcessing()
     emit this->Signal_Set_L_MassegeLable("Запущена обработка файлов. Номер обработки: "
                                              + QString::number(LaunchCounter), "color: orange; font-weight: bold;");
 
+
+    qDebug() << sourceDir;
+    qDebug() << destDir;
     ThreadWorker::setParameters(*ProgramSettings,
                                 *key,
                                 sourceDir,
@@ -219,15 +215,14 @@ void WorkWithFile::StartingFileProcessing()
 
 void WorkWithFile::StopTimerSlot()
 {
-    while (this->FileProcessingInProgress)
-    {
-        QEventLoop loop;
-        QTimer::singleShot(500, &loop, &QEventLoop::quit);
-        loop.exec();
-    }
+    bool isTamer = OnTimer;
     stopTimer();
+    ThreadWorker::StopClicked();
     emit this->Signal_WorkFiles_Stop();
-    emit this->Signal_Set_L_MassegeLable("Процес обработки завершен, таймер отключен.", "color: green; font-weight: bold;");
+    if (isTamer)
+        emit this->Signal_Set_L_MassegeLable("Процес обработки завершен, таймер отключен.", "color: green; font-weight: bold;");
+    else
+        emit this->Signal_Set_L_MassegeLable("Процес обработки завершен.", "color: green; font-weight: bold;");
 }
 
 

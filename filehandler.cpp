@@ -20,28 +20,19 @@ void FileHandler::FilesXORAndSave(AppSettings& ProgramSettings,
         for (auto fileI = allFiles.cbegin(); fileI != allFiles.cend(); fileI++)
         {
             QString fileName = *fileI;
-#ifdef DEBUG_FILE_HANDLER
+            #ifdef DEBUG_FILE_HANDLER
             qDebug() << fileName;
-#endif
+            #endif
             QString sourceFilePath = sourceDir.absoluteFilePath(fileName); // Возвращаем абсолютный путь файла в папке по его названию
             QFile inFile(sourceFilePath);  // Открыли файл
-
-
             if (!inFile.open(QIODevice::ReadOnly))
             {
                 errorMes = "Не удалось открыть файл для чтения:" + sourceFilePath;
                 emit this->Signal_Set_L_MassegeLable(errorMes, "color: red; font-weight: bold;");
-#ifdef DEBUG_FILE_HANDLER
+                #ifdef DEBUG_FILE_HANDLER
                 qDebug() << errorMes;
-#endif
+                #endif
                 continue;
-            }
-            QByteArray fileData = inFile.readAll();
-            inFile.close();
-
-            // Применяем операцию XOR к каждому байту файла
-            for (int i = 0; i < fileData.size(); i++) {
-                fileData[i] = fileData.at(i) ^ key.at(i % key.size());
             }
 
             // Определяем имя файла для сохранения
@@ -62,25 +53,65 @@ void FileHandler::FilesXORAndSave(AppSettings& ProgramSettings,
                         destFileName += "." + ext;
                     destFilePath = destDir.absoluteFilePath(destFileName);
                     ++counter;
+                    if (ClickedStop)
+                    {
+                        emit Signal_FilesXORAndSaveStop();
+                        ClickedStop = false;
+                        return;
+                    }
                 }
             }
 
-            // Записываем обработанные данные в целевой файл
+            // Запись обработанных данных в целевой файл
             QFile outFile(destFilePath);
             if (!outFile.open(QIODevice::WriteOnly))
             {
                 errorMes = "Не удалось открыть файл для записи:" + destFilePath;
                 emit this->Signal_Set_L_MassegeLable(errorMes, "color: red; font-weight: bold;");
-#ifdef DEBUG_FILE_HANDLER
+                #ifdef DEBUG_FILE_HANDLER
                 qDebug() << errorMes;
-#endif
+                #endif
                 continue;
             }
-            outFile.write(fileData);
+
+
+            qint64 fileSize = inFile.size();
+            qint64 processedSize = 0;
+
+            while (processedSize < fileSize)
+            {
+                qint64 chunkSize = qMin(CHUNK_SIZE, fileSize - processedSize); // Оставшийся размер
+                QByteArray buffer = inFile.read(chunkSize);
+
+                if (buffer.isEmpty()) {
+                    #ifdef DEBUG_FILE_HANDLER
+                    qDebug() << "Ошибка чтения файла.";
+                    #endif
+                    break;
+                }
+
+                for (int i = 0; i < buffer.size(); i++) {
+                    buffer[i] = buffer.at(i) ^ key.at(i % key.size());
+                    if(ClickedStop)
+                    {
+                        inFile.close();
+                        outFile.close();
+                        emit Signal_FilesXORAndSaveStop();
+                        ClickedStop = false;
+                        return;
+                    }
+                }
+
+                outFile.write(buffer);
+
+                processedSize += chunkSize;
+            }
+
+            inFile.close();
             outFile.close();
-#ifdef DEBUG_FILE_HANDLER
+            #ifdef DEBUG_FILE_HANDLER
             qDebug() << "Обработан файл:" << sourceFilePath << "сохранён как:" << destFilePath;
-#endif \
+            #endif
             // Если включено удаление исходного файла, удаляем его
             if (ProgramSettings.GetSettingsByName("DeleteInputFile").toBool())
             {
@@ -88,26 +119,31 @@ void FileHandler::FilesXORAndSave(AppSettings& ProgramSettings,
                 {
                     errorMes = "Не удалось открыть файл для записи:" + destFilePath;
                     emit this->Signal_Set_L_MassegeLable(errorMes, "color: red; font-weight: bold;");
-#ifdef DEBUG_FILE_HANDLER
+                    #ifdef DEBUG_FILE_HANDLER
                     qDebug() << errorMes;
-#endif
+                    #endif
                 }
                 else
                 {
-#ifdef DEBUG_FILE_HANDLER
+                    #ifdef DEBUG_FILE_HANDLER
                     qDebug() << "Исходный файл удалён:" << sourceFilePath;
-#endif
+                    #endif
                 }
             }
         }
     }
     else
     {
-#ifdef DEBUG_FILE_HANDLER
+        #ifdef DEBUG_FILE_HANDLER
         qDebug() << "Ошибка запуска обработки, настройки обработки пустые";
-#endif
+        #endif
     }
     emit Signal_FilesXORAndSaveStop();
 
+}
+
+void FileHandler::SetClickedStop(bool click)
+{
+    ClickedStop = click;
 }
 

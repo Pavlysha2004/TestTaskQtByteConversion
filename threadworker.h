@@ -10,7 +10,6 @@ private:
     static inline QByteArray key;
     static inline QDir sourceDir, destDir;
     static inline QStringList allFiles;
-    static inline bool parametersSet = false;
 
     FileHandler *FileHand = nullptr;
 
@@ -22,6 +21,7 @@ public:
                               const QDir &source,
                               const QDir &dest,
                               const QStringList &files);
+    static void StopClicked();
 
 
 public slots:
